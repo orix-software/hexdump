@@ -337,7 +337,7 @@ next:
 	print charline
 
 @end:
-	fclose fp
+	fclose(fp)
 ;	mfree (BufferPtr)
 	mfree (_argv)
 
