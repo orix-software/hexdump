@@ -1,0 +1,8 @@
+*~
+*.o
+*.lst
+*.map
+*.dep
+*.sym
+*.new
+build/
