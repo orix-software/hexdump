@@ -247,7 +247,7 @@ _main:
 
 	ldy #$00
 	ldx #$01
-loop:
+@loop:
 ;	lda (BufferPtr),y
 	;tya
 	;and #%00000111
@@ -256,18 +256,18 @@ loop:
 	sta charline,x
 	lda BufferPtr,y
 	cmp #' '
-	bcc suite
+	bcc @suite
 	cmp #'z'+1
-	bcs suite
+	bcs @suite
 	sta charline,x
 
-suite:
+@suite:
 	print #' '
 	jsr PrintHexByte
 
 	inx
 	cpx #$09
-	bne next
+	bne @next
 	print charline
 
 	jsr StopOrCont
@@ -283,10 +283,10 @@ suite:
 
 	ldx #$01
 
-next:
+@next:
 	iny
 	cpy len
-	bne loop
+	bne @loop
 
 	fread BufferPtr, #$0100, 1, fp
 	; C=0 -> Erreur
@@ -297,7 +297,7 @@ next:
 	sbc #<BufferPtr
 	sta len
 	clc
-	bcc loop-4
+	bcc @loop-4
 
 @endloop:
 
