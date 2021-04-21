@@ -210,9 +210,9 @@ _main:
 @open:
 	fopen (fname), O_RDONLY
 	sta fp
-	sty fp+1
+	stx fp+1
 
-	ora fp+1
+	eor fp+1
 	bne *+5
 	jmp errFopen
 
