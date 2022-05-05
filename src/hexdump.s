@@ -7,17 +7,17 @@
 ;----------------------------------------------------------------------
 ;			Orix Kernel includes
 ;----------------------------------------------------------------------
-.include "kernel/src/include/kernel.inc"
-.include "kernel/src/include/memory.inc"
-.include "kernel/src/include/process.inc"
+;.include "kernel/src/include/kernel.inc"
+;.include "kernel/src/include/memory.inc"
+;.include "kernel/src/include/process.inc"
 ;.include "kernel/src/orix.inc"
 
 
 ;----------------------------------------------------------------------
 ;			Orix Shell includes
 ;----------------------------------------------------------------------
-.include "shell/src/include/bash.inc"
-.include "shell/src/include/orix.inc"
+;.include "shell/src/include/bash.inc"
+;.include "shell/src/include/orix.inc"
 
 
 ;----------------------------------------------------------------------
@@ -28,7 +28,7 @@
 
 ; .reloc nécessaire parce que le dernier segment de orix.inc est .bss et qu'il
 ; y a des .org xxxx dans les fichiers .inc...
-.reloc
+;.reloc
 
 ;----------------------------------------------------------------------
 ;				Imports
@@ -87,6 +87,7 @@
 	address: .res 2
 	;BufferPtr: .res 2
 	len: .res 1
+	userzp: .res 6
 .endif
 
 ;----------------------------------------------------------------------
@@ -231,7 +232,7 @@ _main:
 ;	inc len
 
 ;	jsr PrintRegs
-	BRK_KERNEL XCRLF
+	crlf
 ;	lda PTR_READ_DEST+1
 ;	jsr PrintHexByte
 ;	lda PTR_READ_DEST
@@ -262,13 +263,13 @@ _main:
 	sta charline,x
 
 @suite:
-	print #' '
+	print #' ', SAVE
 	jsr PrintHexByte
 
 	inx
 	cpx #$09
 	bne @next
-	print charline
+	print charline, SAVE
 
 	jsr StopOrCont
 	bcs @end
@@ -330,7 +331,7 @@ _main:
 	iny
 	lda emptyline,y
 	beq @aff_dummp
-	BRK_KERNEL XWR0
+	BRK_TELEMON XWR0
 	bne @empty_loop
 
 @aff_dummp:
@@ -341,7 +342,7 @@ _main:
 ;	mfree (BufferPtr)
 	mfree (_argv)
 
-	BRK_KERNEL XCRLF
+	crlf
 	rts
 
 ;----------------------------------------------------------------------
@@ -349,14 +350,14 @@ _main:
 ; A mettre dans la librairie
 ;----------------------------------------------------------------------
 StopOrCont:
-	BRK_KERNEL XRD0
+	BRK_TELEMON XRD0
 	cmp #$03
 	beq @stop
 	cmp #' '
 	bne @cont
 
 @loop:
-	BRK_KERNEL XRD0
+	BRK_TELEMON XRD0
 	beq @loop
 	cmp #$03
 	beq @stop
@@ -420,7 +421,7 @@ printAddress:
 ;	-
 ;----------------------------------------------------------------------
 errArgv:
-	print error_argv, NOSAVE
+	print error_argv
 	rts
 
 ;----------------------------------------------------------------------
@@ -438,13 +439,12 @@ errArgv:
 ;	-
 ;----------------------------------------------------------------------
 errFopen:
-	BRK_KERNEL XCRLF
-	print error_fopen, NOSAVE
+	crlf
+	print error_fopen
 errEnd:
-	print (fname), NOSAVE
-	BRK_KERNEL XCRLF
-	BRK_KERNEL XCRLF
-
+	print (fname)
+	crlf
+	crlf
 	rts
 
 ;----------------------------------------------------------------------
@@ -462,8 +462,8 @@ errEnd:
 ;	-
 ;----------------------------------------------------------------------
 errFread:
-	BRK_KERNEL XCRLF
-	print error_fread, NOSAVE
+	crlf
+	print error_fread
 	clc
 	bcc errEnd
 
@@ -482,7 +482,7 @@ errFread:
 ;	-
 ;----------------------------------------------------------------------
 DisplayHelp:
-        print helpmsg, NOSAVE
+        print helpmsg
         ; Dépile le pointeur sur la ligne de commande
         ;pla
         ;pla
