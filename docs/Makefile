@@ -18,7 +18,7 @@ VERBOSE ?= 0
 # Définition des outils
 #
 
-MD2HLP = $(MD2HLP_PATH)/md2hlp.py
+MD2HLP = $(MD2HLP_PATH)/md2hlp.py3
 
 #
 # Définition des options pour les outils

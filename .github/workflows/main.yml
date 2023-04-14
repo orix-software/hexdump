@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Cache sdk
         id: cache-sdk
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
              cc65/**/*
@@ -30,21 +30,21 @@ jobs:
 
       - name: Checkout cc65
         if: steps.cache-sdk.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: cc65/cc65
           path: cc65
 
       - name: Checkout orix-sdk
         if: steps.cache-sdk.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: assinie/orix-sdk
           path: orix-sdk
 
       - name: Checkout md2hlp
         if: steps.cache-sdk.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: assinie/md2hlp
           path: md2hlp
@@ -89,16 +89,16 @@ jobs:
       repo_name: ${{ steps.job_vars.outputs.REPO_NAME }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set job variables
         id: job_vars
         run: |
-          echo "::set-output name=VERSION::$(cat VERSION)"
-          echo "::set-output name=REPO_NAME::${GITHUB_REPOSITORY##*/}"
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+          echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_OUTPUT
 
       - name: Install sdk
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
              cc65/**/*
@@ -117,7 +117,7 @@ jobs:
         run: ls -lR build
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.job_vars.outputs.REPO_NAME }}
           path: |
@@ -155,7 +155,7 @@ jobs:
       # On pourrait faire l'extraction directement à la racine si VERSION est dans l'artifact
       - name: Download Artifact
         id: download
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.repo_name }}
           path: artifact
