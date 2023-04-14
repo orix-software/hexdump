@@ -1,4 +1,4 @@
-export PROJECT := hexdump
+export PROJECT := $(notdir $(shell pwd))
 
 all: project docs
 

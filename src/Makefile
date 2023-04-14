@@ -15,12 +15,15 @@ SDK_PATH = ../../orix-sdk/
 LIB_PATH = $(SDK_PATH)/build/lib
 LIBS = orix-sdk.lib
 
+START_ADDR ?= 0x0900
+
 VERSION ?= "0.01"
 VERBOSE ?= 0
 
 # %<-------------------------------------------------------------------------->%
 #               Ne rien modifier au dela de cette ligne
 #
+TARGET = telestrat
 
 #
 # Définition des outils
@@ -43,15 +46,16 @@ endif
 #
 
 ifeq ($(DEBUG),yes)
-	ASFLAGS = -t telestrat -I $(BUILD_PATH) -I $(SDK_PATH) -I $(SHELL_PATH) -I $(KERNEL_PATH) -D VERBOSE_LEVEL=$(VERBOSE) --list-bytes 0 -l $(OBJ_PATH)/$(PROJECT).lst --debug-info
-	LDFLAGS = -t telestrat  -Ln $(BIN_PATH)/$(PROJECT).ca.sym -m $(BIN_PATH)/$(PROJECT).map --lib-path $(LIB_PATH)
+	ASFLAGS = -t $(TARGET) -I ../ -I . -I $(SDK_PATH)/macros -I $(SDK_PATH)/include -I $(SHELL_PATH) -I $(KERNEL_PATH) -D VERBOSE_LEVEL=$(VERBOSE) --auto-import --list-bytes 0 -l $(@:.o=.lst) --debug-info
+	LDFLAGS = -t $(TARGET)  -Ln $(@).ca.sym -m $(@).map --lib-path $(LIB_PATH) --start-addr $(START_ADDR)
 	# LDFLAGS = -C "$(LD65_CFG)"  -Ln $(BUILD_PATH)/$(PROJECT).ca.sym -m $(BUILD_PATH)/$(PROJECT).map --lib-path $(LIB_PATH)
 else
-	ASFLAGS = -t telestrat -I $(BUILD_PATH) -I $(SDK_PATH) -I $(SHELL_PATH) -I $(KERNEL_PATH) -D VERBOSE_LEVEL=$(VERBOSE)
-	LDFLAGS = -t telestrat  --lib-path $(LIB_PATH)
+	ASFLAGS = -t $(TARGET) -I ../ -I . -I $(SDK_PATH)/macros -I $(SDK_PATH)/include -I $(SHELL_PATH) -I $(KERNEL_PATH) -D VERBOSE_LEVEL=$(VERBOSE) --auto-import
+	LDFLAGS = -t $(TARGET)  --lib-path $(LIB_PATH) --start-addr $(START_ADDR)
 	# LDFLAGS = -C "$(LD65_CFG)"  --lib-path $(LIB_PATH)
 endif
 
+CREATE_DEP = --create-dep $(@:.o=.d)
 
 #
 # Cibles make
@@ -59,18 +63,21 @@ endif
 
 .PHONY: clean mrproper
 
+
 all: $(BUILD_PATH) $(OBJ_PATH) $(BIN_PATH) $(BIN_PATH)/$(PROJECT)
+
 
 configure: $(OBJ_PATH) $(BIN_PATH)
 
+
 clean:
-	cd $(OBJ_PATH) && rm -f *.o *.lst
+	@cd $(OBJ_PATH) && rm -f *.o *.lst *.d
+	@cd $(BIN_PATH) && rm -f *.sym *.map
 
 
 mrproper: clean
-	@#cd $(BIN_PATH) && rm -f $(PROJECT) *.sym *.map
-	rm -rf $(BIN_PATH)
-	rm -rf $(OBJ_PATH)
+	@rm -rf $(BIN_PATH)
+	@rm -rf $(OBJ_PATH)
 
 
 #
@@ -80,20 +87,20 @@ mrproper: clean
 
 SRC = $(wildcard *.s)
 OBJS= $(addprefix $(OBJ_PATH)/, $(patsubst %.s,%.o, $(SRC)))
-
+DEPS := $(OBJS:.o=.d)
 
 #%.o: %.s
 $(OBJ_PATH)/%.o: %.s
 	@echo "Assemble $<"
-	@$(AS) $(ASFLAGS) -o $@ $<
+	@$(AS) $(ASFLAGS) $(CREATE_DEP) -o $@ $<
 
 
 $(BIN_PATH)/$(PROJECT): $(OBJS) $(LIB_PATH)/$(LIBS)
-	@echo "Create $(PROJECT)"
-	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+	@echo "Create $(PROJECT) (start address = $(START_ADDR))"
+	@$(LD) $(LDFLAGS) -o $@ $^ $(LIBS) $(TARGET).lib
 ifeq ($(DEBUG),yes)
 	@echo "Create $(PROJECT).sym"
-	@sed -re 's/al 00(.{4}) \.(.+)$$/\1 \2/' $(BIN_PATH)/$(PROJECT).ca.sym | sort > $(BIN_PATH)/$(PROJECT).sym
+	@sed -re 's/al 00(.{4}) \.(.+)$$/\1 \2/' $(BIN_PATH)/$(PROJECT).ca.sym | sort | uniq > $(BIN_PATH)/$(PROJECT).sym
 endif
 
 $(OBJ_PATH):
@@ -108,3 +115,4 @@ $(BUILD_PATH):
 	@echo "Create $(BUILD_PATH) directory"
 	@mkdir -p $(BUILD_PATH)
 
+-include $(DEPS)
