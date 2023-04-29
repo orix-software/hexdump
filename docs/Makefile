@@ -64,7 +64,7 @@ OBJS= $(addprefix $(MAN_PATH)/, $(patsubst %.md,%.hlp, $(SRC)))
 #%.hlp: %.md
 $(MAN_PATH)/%.hlp: %.md
 	@echo "Create $(PROJECT).hlp"
-	@python $(MD2HLP) $(MD2HLPFLAGS) -o $@ -f $<
+	@python3 $(MD2HLP) $(MD2HLPFLAGS) -o $@ -f $<
 
 
 $(MAN_PATH)/$(PROJECT).hlp: $(PROJECT).md
